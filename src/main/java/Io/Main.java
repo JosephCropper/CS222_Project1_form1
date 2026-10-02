@@ -1,5 +1,4 @@
-package org.example;
-
+package Io;
 
 import java.net.URI;
 import java.net.URLEncoder;
@@ -32,8 +31,9 @@ public class Main {
         try {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            //System.out.println("Response JSON: \n" + response.body());
+            System.out.println("Response JSON: \n" + response.body());
             extractRedirectInformation(response.body());
+            extractRevisionInformation(response.body());
 
         } catch (Exception e) {
             System.err.println("Error"
@@ -54,15 +54,20 @@ public class Main {
                 + "?action=query"
                 + "&format=json"
                 + "&titles=" + encodedTitle //search for this title
-                + "&prop=redirects%7Crevisions" //get redirects and revisions
+                + "&redirects=true%7Crevisions" //get redirects and revisions
                 + "&rvprop=ids%7Ctimestamp%7Cuser"
                 + "&formatversion=2"); //revisionDetails
 
     }
 
 
+
     public static void extractRedirectInformation(String jsonText){
-        extractInformation(jsonText, "redirects\":[{", "revisions\":[{", "\"title\":\"", "Redirect");
+        extractInformation(jsonText, "redirects\":[{", "revisions\":[{", "\"to\":\"", "Redirect");
+    }
+
+    public static void extractRevisionInformation(String jsonText){
+        extractInformation(jsonText,  "revisions\":[{", "}]}]}}", "\"user\":\"", "Revision");
     }
 
 
@@ -74,29 +79,49 @@ public class Main {
         int startSubstring = jsonText.indexOf(startSearch);
         int endSubstring = jsonText.indexOf(endSearch);
 
+        //changes index for print substrings depending on the information being presented and known patterns
+        int bound = 0;
+        if (purpose == "Redirect"){
+            bound = 0;
+        }
+        else if (purpose == "Revision"){
+            bound = 8;
+        }
+
+
         if (startSubstring == -1) {
             System.out.println("No " + purpose + " Detected");
+
         }
         else{
-            String redirectSubstring = jsonText.substring((startSubstring+10), endSubstring);
 
-            int indexOfRedirect = 0;
-            while (indexOfRedirect != -1){
+            String textSubstring = jsonText.substring((startSubstring+10), endSubstring);
+            int storedIndexOf = 0;
 
-                indexOfRedirect = redirectSubstring.indexOf(keyword);
-                if (indexOfRedirect != -1){
-                    redirectSubstring = redirectSubstring.substring((indexOfRedirect+9));
+            while (storedIndexOf != -1){
 
-                    indexOfRedirect = redirectSubstring.indexOf("\"");
-                    System.out.println(purpose + ": " + redirectSubstring.substring(0, indexOfRedirect));
+                storedIndexOf = textSubstring.indexOf(keyword);
 
-                    redirectSubstring = redirectSubstring.substring(indexOfRedirect);
+                if (storedIndexOf != -1){
+
+                    textSubstring = textSubstring.substring((storedIndexOf+bound));
+                    storedIndexOf = textSubstring.indexOf("\"");
+                    System.out.println(purpose + ": " + textSubstring.substring(0, storedIndexOf));
+
+                    if (bound == 8){
+
+                        int timeIndex = textSubstring.indexOf("timestamp\":\"");
+                        textSubstring = textSubstring.substring((timeIndex+12));
+                        timeIndex = textSubstring.indexOf("\"");
+
+                        System.out.println("Time: " + textSubstring.substring(0, timeIndex));
+                    }
+
+                    textSubstring = textSubstring.substring(storedIndexOf);
 
                 }
             }
         }
-
     }
-
 }
 
