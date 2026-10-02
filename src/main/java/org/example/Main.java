@@ -10,13 +10,16 @@ import java.net.http.HttpResponse;
 
 public class Main {
     public static void main(String[] args) {
+        searchWikiFor("Sleep Token");
         searchWikiFor("Java");
+        searchWikiFor("Java (software)");
+
     }
 
 
     //Sends Search request to wikimedia
     public static void searchWikiFor(String articleTitle) {
-
+        System.out.println("\nSearching for " + articleTitle + "...");
         String url = encodeSearchToUrl(articleTitle);
 
         HttpClient client = HttpClient.newHttpClient();
@@ -29,13 +32,14 @@ public class Main {
         try {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            System.out.println("Response JSON: \n" + response.body());
+            //System.out.println("Response JSON: \n" + response.body());
             extractRedirectInformation(response.body());
 
         } catch (Exception e) {
             System.err.println("Error"
                     + "\nLocation: Main, searchWikiFor"
-                    + "\nResponse to JSON request failed");
+                    + "\nResponse to JSON request failed\n"
+                    + e);
 
         }
 
@@ -57,27 +61,42 @@ public class Main {
     }
 
 
-    //Extract Redirects
-    public static void extractRedirectInformation(String jsonText) {
-        int startSubstring = jsonText.indexOf("redirects\":[{");
-        int endSubstring = jsonText.indexOf("revisions\":[{");
+    public static void extractRedirectInformation(String jsonText){
+        extractInformation(jsonText, "redirects\":[{", "revisions\":[{", "\"title\":\"", "Redirect");
+    }
+
+
+    //todo
+    //rename the things from redirect to a more neutral word
+    public static void extractInformation(String jsonText, String startSearch,
+                                          String endSearch, String keyword,
+                                          String purpose) {
+        int startSubstring = jsonText.indexOf(startSearch);
+        int endSubstring = jsonText.indexOf(endSearch);
 
         if (startSubstring == -1) {
-            System.out.println("No Redirects Detected");
+            System.out.println("No " + purpose + " Detected");
         }
         else{
             String redirectSubstring = jsonText.substring((startSubstring+10), endSubstring);
 
-            int indexOfRedirectTitle = 0;
-            while (indexOfRedirectTitle != -1){
+            int indexOfRedirect = 0;
+            while (indexOfRedirect != -1){
 
-                indexOfRedirectTitle = redirectSubstring.indexOf("\"title\":\"");
-                redirectSubstring = redirectSubstring.substring((indexOfRedirectTitle+9));
-                System.out.println(redirectSubstring);
+                indexOfRedirect = redirectSubstring.indexOf(keyword);
+                if (indexOfRedirect != -1){
+                    redirectSubstring = redirectSubstring.substring((indexOfRedirect+9));
 
-                indexOfRedirectTitle = -1;
+                    indexOfRedirect = redirectSubstring.indexOf("\"");
+                    System.out.println(purpose + ": " + redirectSubstring.substring(0, indexOfRedirect));
+
+                    redirectSubstring = redirectSubstring.substring(indexOfRedirect);
+
+                }
             }
         }
+
     }
+
 }
 
