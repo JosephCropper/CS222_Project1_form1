@@ -10,6 +10,9 @@ import java.net.http.HttpResponse;
 //
 public class Main {
     public static void main(String[] args) {
+        //todo
+        //Fix times to correct utc
+        //add recognition for non-articles entered
         Scanner scan = new Scanner(System.in);
         while (true){
             System.out.println("Enter article name: ");
@@ -27,7 +30,7 @@ public class Main {
 
     //Sends Search request to wikimedia
     public static void searchWikiFor(String articleTitle) {
-        System.out.println("\nSearching for " + articleTitle + "...");
+        //System.out.println("\nSearching for " + articleTitle + "...");
         String url = encodeSearchToUrl(articleTitle);
 
         HttpClient client = HttpClient.newHttpClient();
@@ -43,6 +46,7 @@ public class Main {
             //System.out.println("Response JSON: \n" + response.body());
             extractRedirectInformation(response.body());
             extractRevisionInformation(response.body());
+            System.out.println("\n---------------------------\n");
 
         } catch (Exception e) {
             System.err.println("Error"
@@ -89,6 +93,7 @@ public class Main {
                                           String purpose) {
         int startSubstring = jsonText.indexOf(startSearch);
         int endSubstring = jsonText.indexOf(endSearch);
+        int iterations = 0;
 
         //changes index for print substrings depending on the information being presented and known patterns
         int bound = 0;
@@ -101,8 +106,7 @@ public class Main {
 
 
         if (startSubstring == -1) {
-            System.out.println("No " + purpose + " Detected");
-
+            //System.out.println("No " + purpose + " Detected");
         }
         else{
 
@@ -111,13 +115,21 @@ public class Main {
 
             while (storedIndexOf != -1){
 
+
                 storedIndexOf = textSubstring.indexOf(keyword);
 
                 if (storedIndexOf != -1){
 
                     textSubstring = textSubstring.substring((storedIndexOf+bound));
                     storedIndexOf = textSubstring.indexOf("\"");
-                    System.out.println(purpose + ": " + textSubstring.substring(0, storedIndexOf));
+                    if (bound == 6) {
+                        System.out.print("\nRedirect: "  + textSubstring.substring(0, storedIndexOf) + "\n");
+                    }
+                    else if (bound == 8){
+                        iterations++;
+                        System.out.print("\nRevision " + iterations + ": " + textSubstring.substring(0, storedIndexOf));
+
+                    }
 
                     if (bound == 8){
 
@@ -125,7 +137,7 @@ public class Main {
                         textSubstring = textSubstring.substring((timeIndex+12));
                         timeIndex = textSubstring.indexOf("\"");
 
-                        System.out.println("Time: " + textSubstring.substring(0, timeIndex));
+                        System.out.print("  |  Time: " + textSubstring.substring(0, timeIndex));
                     }
 
                     textSubstring = textSubstring.substring(storedIndexOf);
