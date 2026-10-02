@@ -1,5 +1,6 @@
 package Io;
 
+import java.util.Scanner;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -9,10 +10,18 @@ import java.net.http.HttpResponse;
 
 public class Main {
     public static void main(String[] args) {
-        searchWikiFor("Sleep Token");
-        searchWikiFor("Java");
-        searchWikiFor("Java (software)");
-
+        Scanner scan = new Scanner(System.in);
+        while (true){
+            System.out.println("Enter article name: ");
+            String input = scan.nextLine();
+            if (input == ""){
+                System.err.println("No article entered. Closing...");
+                break;
+            }
+            else{
+                searchWikiFor(input);
+            }
+        }
     }
 
 
@@ -31,7 +40,7 @@ public class Main {
         try {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            System.out.println("Response JSON: \n" + response.body());
+            //System.out.println("Response JSON: \n" + response.body());
             extractRedirectInformation(response.body());
             extractRevisionInformation(response.body());
 
@@ -54,8 +63,10 @@ public class Main {
                 + "?action=query"
                 + "&format=json"
                 + "&titles=" + encodedTitle //search for this title
-                + "&redirects=true%7Crevisions" //get redirects and revisions
+                + "&redirects=true"
+                + "&prop=revisions"
                 + "&rvprop=ids%7Ctimestamp%7Cuser"
+                + "&rvlimit=15"
                 + "&formatversion=2"); //revisionDetails
 
     }
@@ -82,7 +93,7 @@ public class Main {
         //changes index for print substrings depending on the information being presented and known patterns
         int bound = 0;
         if (purpose == "Redirect"){
-            bound = 0;
+            bound = 6;
         }
         else if (purpose == "Revision"){
             bound = 8;
