@@ -14,22 +14,22 @@ public class Main {
         //Fix times to correct utc
         //add recognition for non-articles entered
         Scanner scan = new Scanner(System.in);
-        while (true){
+        boolean loop = true;
+        while (loop) {
             System.out.println("Enter article name: ");
             String input = scan.nextLine();
-            if (input == ""){
+            if (input == "") {
                 System.err.println("No article entered. Closing...");
                 break;
-            }
-            else{
-                searchWikiFor(input);
+            } else {
+                loop = searchWikiFor(input);
             }
         }
     }
 
 
     //Sends Search request to wikimedia
-    public static void searchWikiFor(String articleTitle) {
+    public static boolean searchWikiFor(String articleTitle) {
         //System.out.println("\nSearching for " + articleTitle + "...");
         String url = encodeSearchToUrl(articleTitle);
 
@@ -44,9 +44,15 @@ public class Main {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             //System.out.println("Response JSON: \n" + response.body());
-            extractRedirectInformation(response.body());
-            extractRevisionInformation(response.body());
-            System.out.println("\n---------------------------\n");
+            if (isValidSearch(response.body())) {
+
+                extractRedirectInformation(response.body());
+                extractRevisionInformation(response.body());
+                System.out.println("\n---------------------------\n");
+                return true;
+
+            }
+            return false;
 
         } catch (Exception e) {
             System.err.println("Error"
@@ -55,8 +61,9 @@ public class Main {
                     + e);
 
         }
-
+        return false;
     }
+
 
 
     //Encodes title to a URL for safe sending to WikiMedia
@@ -85,9 +92,15 @@ public class Main {
         extractInformation(jsonText,  "revisions\":[{", "}]}]}}", "\"user\":\"", "Revision");
     }
 
+    public static boolean isValidSearch(String jsonText){
+        if (jsonText.indexOf("missing\":true") != -1){
+            System.err.println("Invalid search, closing...");
+            return false;
+        }
+        return true;
+    }
 
-    //todo
-    //rename the things from redirect to a more neutral word
+
     public static void extractInformation(String jsonText, String startSearch,
                                           String endSearch, String keyword,
                                           String purpose) {
