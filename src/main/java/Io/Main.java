@@ -9,29 +9,44 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class Main {
+
     public static void main(String[] args) {
-        //todo
-        //Fix times to correct utc
-        //add recognition for non-articles entered
+        run();
+    }
+
+
+
+    public static boolean run(){
         Scanner scan = new Scanner(System.in);
         boolean loop = true;
+
         while (loop) {
+
             System.out.println("Enter article name: ");
             String input = scan.nextLine();
-            if (input == "") {
+
+            if (input.isEmpty()) {
+
                 System.err.println("No article entered. Closing...");
-                break;
-            } else {
+                return false;
+
+            }
+            else {
                 loop = searchWikiFor(input);
+
             }
         }
+        return false;
     }
+
+
 
 
     //Sends Search request to wikimedia
     public static boolean searchWikiFor(String articleTitle) {
-        //System.out.println("\nSearching for " + articleTitle + "...");
+
         String url = encodeSearchToUrl(articleTitle);
+        String jsonResponse = "";
 
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
@@ -42,25 +57,36 @@ public class Main {
 
         try {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            jsonResponse = response.body();
+        }
+        catch (Exception e) {
 
-            //System.out.println("Response JSON: \n" + response.body());
-            if (isValidSearch(response.body())) {
+            System.err.println("Main main | Network error, closing..." + "\n" + e);
+            System.exit(0);
 
-                extractRedirectInformation(response.body());
-                extractRevisionInformation(response.body());
+        }
+        try{
+            if (isValidSearch(jsonResponse)) {
+
+                System.out.print(extractInformation(jsonResponse, "Redirect"));
+                System.out.println(extractInformation(jsonResponse, "Revision"));
                 System.out.println("\n---------------------------\n");
                 return true;
 
             }
             return false;
 
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
+
             System.err.println("Error"
                     + "\nLocation: Main, searchWikiFor"
                     + "\nResponse to JSON request failed\n"
                     + e);
+            System.exit(0);
 
         }
+
         return false;
     }
 
@@ -68,8 +94,8 @@ public class Main {
 
     //Encodes title to a URL for safe sending to WikiMedia
     public static String encodeSearchToUrl(String search) {
-        String encodedTitle = URLEncoder.encode(search, StandardCharsets.UTF_8);
 
+        String encodedTitle = URLEncoder.encode(search, StandardCharsets.UTF_8);
         return ("https://en.wikipedia.org/w/api.php"
                 + "?action=query"
                 + "&format=json"
@@ -82,52 +108,49 @@ public class Main {
 
     }
 
-
-
-    public static void extractRedirectInformation(String jsonText){
-        extractInformation(jsonText, "redirects\":[{", "revisions\":[{", "\"to\":\"", "Redirect");
-    }
-
-    public static void extractRevisionInformation(String jsonText){
-        extractInformation(jsonText,  "revisions\":[{", "}]}]}}", "\"user\":\"", "Revision");
-    }
-
     public static boolean isValidSearch(String jsonText){
         if (jsonText.indexOf("missing\":true") != -1){
             System.err.println("Invalid search, closing...");
+            System.exit(0);
             return false;
         }
         return true;
     }
 
 
-    public static void extractInformation(String jsonText, String startSearch,
-                                          String endSearch, String keyword,
-                                          String purpose) {
-        int startSubstring = jsonText.indexOf(startSearch);
-        int endSubstring = jsonText.indexOf(endSearch);
+
+    public static String extractInformation(String jsonText, String purpose) {
+
+        int startSubstring = -1;
+        int endSubstring = -1;
         int iterations = 0;
+        String keyword = "";
+        String output = "";
 
         //changes index for print substrings depending on the information being presented and known patterns
         int bound = 0;
         if (purpose == "Redirect"){
             bound = 6;
+            startSubstring = jsonText.indexOf("redirects\":[{");
+            endSubstring = jsonText.indexOf("revisions\":[{");
+            keyword = "\"to\":\"";
+
         }
         else if (purpose == "Revision"){
             bound = 8;
+            startSubstring = jsonText.indexOf("revisions\":[{");
+            endSubstring = jsonText.indexOf("}]}]}}");
+            keyword = "\"user\":\"";
+
         }
 
 
-        if (startSubstring == -1) {
-            //System.out.println("No " + purpose + " Detected");
-        }
-        else{
+        if (startSubstring != -1) {
 
             String textSubstring = jsonText.substring((startSubstring+10), endSubstring);
             int storedIndexOf = 0;
 
             while (storedIndexOf != -1){
-
 
                 storedIndexOf = textSubstring.indexOf(keyword);
 
@@ -135,22 +158,20 @@ public class Main {
 
                     textSubstring = textSubstring.substring((storedIndexOf+bound));
                     storedIndexOf = textSubstring.indexOf("\"");
+
                     if (bound == 6) {
-                        System.out.print("\nRedirect: "  + textSubstring.substring(0, storedIndexOf) + "\n");
+                        output = output + ("\nRedirected to "  + textSubstring.substring(0, storedIndexOf) + "\n");
+
                     }
                     else if (bound == 8){
                         iterations++;
-                        System.out.print("\nRevision " + iterations + ": " + textSubstring.substring(0, storedIndexOf));
-
-                    }
-
-                    if (bound == 8){
-
+                        String username = textSubstring.substring(0, storedIndexOf);
                         int timeIndex = textSubstring.indexOf("timestamp\":\"");
                         textSubstring = textSubstring.substring((timeIndex+12));
                         timeIndex = textSubstring.indexOf("\"");
 
-                        System.out.print("  |  Time: " + textSubstring.substring(0, timeIndex));
+                        output = output + ("\n" + iterations + "  " + textSubstring.substring(0, timeIndex) + "  " +  username);
+
                     }
 
                     textSubstring = textSubstring.substring(storedIndexOf);
@@ -158,6 +179,10 @@ public class Main {
                 }
             }
         }
+
+        return output;
+
     }
+
 }
 
