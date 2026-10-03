@@ -11,20 +11,28 @@ import java.net.http.HttpResponse;
 public class Main {
 
     public static void main(String[] args) {
-        run();
+        run("fromMain");
+        System.exit(0);
     }
 
 
 
-    public static boolean run(){
+    public static boolean run(String code){
         Scanner scan = new Scanner(System.in);
         boolean loop = true;
+        String input;
 
         while (loop) {
+            if (code.equals("fromMain")) {
 
-            System.out.println("Enter article name: ");
-            String input = scan.nextLine();
+                System.out.println("Enter article name: ");
+                input = scan.nextLine();
 
+            }
+            else{
+                input = code;
+
+            }
             if (input.isEmpty()) {
 
                 System.err.println("No article entered. Closing...");
@@ -33,7 +41,9 @@ public class Main {
             }
             else {
                 loop = searchWikiFor(input);
-
+                if (!code.equals("fromMain")){
+                    return loop;
+                }
             }
         }
         return false;
@@ -62,7 +72,7 @@ public class Main {
         catch (Exception e) {
 
             System.err.println("Main main | Network error, closing..." + "\n" + e);
-            System.exit(0);
+            return false;
 
         }
         try{
@@ -83,7 +93,6 @@ public class Main {
                     + "\nLocation: Main, searchWikiFor"
                     + "\nResponse to JSON request failed\n"
                     + e);
-            System.exit(0);
 
         }
 
@@ -111,7 +120,6 @@ public class Main {
     public static boolean isValidSearch(String jsonText){
         if (jsonText.indexOf("missing\":true") != -1){
             System.err.println("Invalid search, closing...");
-            System.exit(0);
             return false;
         }
         return true;
@@ -129,14 +137,14 @@ public class Main {
 
         //changes index for print substrings depending on the information being presented and known patterns
         int bound = 0;
-        if (purpose == "Redirect"){
+        if (purpose.equals("Redirect")){
             bound = 6;
             startSubstring = jsonText.indexOf("redirects\":[{");
             endSubstring = jsonText.indexOf("revisions\":[{");
             keyword = "\"to\":\"";
 
         }
-        else if (purpose == "Revision"){
+        else if (purpose.equals("Revision")){
             bound = 8;
             startSubstring = jsonText.indexOf("revisions\":[{");
             endSubstring = jsonText.indexOf("}]}]}}");
