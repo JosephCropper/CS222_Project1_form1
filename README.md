@@ -1,5 +1,4 @@
 # CS222_Project1_form1
-All Code is in the "code" branch of the project.
 
 Created by Joseph Cropper
 
@@ -19,16 +18,16 @@ Project function:
 
 ## Main:
 ###   public static void main(String[] args)
-Initializes the scanner import for input and starts primary loop in a while loop on a boolean switch
+Runs "run" function. differentiated for testing purposes. 
 
-Prompts user for article name, and immediately checks for empty entry.
-- If entry is not empty, runs searchWikiFor with the input, and set loop to the return value.
-- If entry is empty, breaks loop and program finishes with a System.err message
+### public static boolean run(String code)
+Initializes scanner and loop. Immediately takes user input, checks if its empty. If its empty, the program cuts. Otherwise, calls searchWikiFor with the input.
+"code" allows for testing differentials, where the input can be manually entered in in a test. This is also why there's a return boolean.
 
 ###   public static boolean searchWikiFor(String articleTitle) 
-Encodes articleTitle to a proper URL format for safe searching in a String format, stores it in a new string
-
-Initializes get request to MediaWiki with the encoded url string and establishes return format JSON
+Return affects the run loop, true loops again, false breaks.
+Main Driver. 
+Encodes articleTitle to a proper URL format for safe searching in a String format using encodeSearchToUrl, stores it in a new string, Initializes get request to MediaWiki with the encoded url string and establishes return format JSON.
 
 TRY to send request to MediaWiki, stores the response
 
@@ -38,9 +37,9 @@ IF if the search is deemed valid by isValidSearch
 
 {
 
-runs extractInformation with response data and appropriate information to print Redirect information
+runs extractInformation with response data and appropriate information to print Redirect information, prints result
 
-runs extractInformation with response data and appropriate information to print Revision information
+runs extractInformation with response data and appropriate information to print Revision information, prints result
 
 and return true, as the search request is valid and the program may continue.
 
@@ -57,25 +56,17 @@ One final return false at the end as a catch-all failsafe.
 ###     public static String encodeSearchToUrl(String search) {
 Encodes search to url-safe format for request sending, returns.
 
-###     public static void extractRedirectInformation(String jsonText),     public static void extractRevisionInformation(String jsonText)
-runs extractInformation with the proper formatting to print redirect and revision information respectively
 
 ###     public static boolean isValidSearch(String jsonText)
 Checks jsonText for "missing" keyword to see if the MediaWiki response states if no article was found, if "missing" is found, then returns false, else true.
 
-###   public static void extractInformation(String jsonText, String startSearch, String endSearch, String keyword, String purpose) 
-purpose dictates the few switches between "Redirect" and "Revision" in this function
+###   extractInformation
+Initializes a few key variables depending on which function it needs to run, namely a startSubstring, endSubstring, and keyword
 
-startSearch dictates the beginning keyword of the substring for the data needing parsed 
+The startSubstring seeks the initial keyword for searching based on the function, and checks to see if it appears. If it does, since all the data in the JSON follows it, it snips the input string to everything after it to the end of the endSubstring, which searches for a specific keyword based on the function that prevents the substring from reading data that may not apply.
 
-endSearch dictates the ending keyword of the substring for the data needing parsed
-
-keyword dictates the keyword before the actual data wanting to be parsed (ie "title" for redirct, "user" for revision)
-
-The rest of the function works as such:
-- snip the original string into a substring that has the information only pertaining to the needed information (given by startsearch and endsearch)
-- search for the keyword within the substring, and find the index of the soonest location of it
-- snip the substring of everything up to the data wanted (Note: most data is held within quotations "". if you snip the substring all the way up to the data (time:"2026" -> 2026"), the next quotation can be used as a benchmark for the length of the data itself, letting us retrieve the data specifically no matter the length with a uniform piece of code. this is how we:)
-- take the exact data from the substring and print it as required in formatting, then snip the data from the substring
-- continue in a loop from searching for the keyword over and over until no keywords remain, in which end the loop and function
-  
+From this point, a loop runs through the function:
+- Search for the index of the keyword, a keyword for each individual function. (user:"editorOne")
+- Cuts to just past the keyword, to directly expose the data(editorOne")
+- Uses the quotation mark that follows raw data as a measure to extract the raw data itself (editorOne is added to the output)
+- snips past the data and looks for the next iteration of the keyword, if none appear, the loop ends.
