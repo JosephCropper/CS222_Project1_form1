@@ -7,6 +7,12 @@ import java.nio.charset.StandardCharsets;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.stage.Stage;
+
 
 public class Main {
 
@@ -15,6 +21,15 @@ public class Main {
         System.exit(0);
     }
 
+    public void guiControl(Stage Stage){
+        Label query = new Label("Enter wikipedia article name...");
+        TextField inputBox = new TextField();
+        VBox vbox = new VBox();
+
+        vbox.setAlignment(Pos.CENTER);
+        vbox.setPadding(new Insets(20));
+
+    }
 
 
     public static boolean run(String code){
