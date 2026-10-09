@@ -14,49 +14,20 @@ public class Main {
     public static void main(String[] args) {
         JavafxWindow guiWindow = new JavafxWindow();
         guiWindow.runWindow(args);
-        run("fromMain");
         System.exit(0);
     }
 
-
-
-    public static boolean run(String code){
-        Scanner scan = new Scanner(System.in);
-        boolean loop = true;
-        String input;
-
-        while (loop) {
-            if (code.equals("fromMain")) {
-
-                System.out.println("Enter article name: ");
-                input = scan.nextLine();
-
-            }
-            else{
-                input = code;
-
-            }
-            if (input.isEmpty()) {
-
-                System.err.println("No article entered. Closing...");
-                return false;
-
-            }
-            else {
-                loop = searchWikiFor(input);
-                if (!code.equals("fromMain")){
-                    return loop;
-                }
-            }
+    public static String run(String input){
+        if (input.isEmpty()) {
+            return ("!No Input Detected!");
         }
-        return false;
+        else {
+            return searchWikiFor(input);
+        }
     }
 
-
-
-
     //Sends Search request to wikimedia
-    public static boolean searchWikiFor(String articleTitle) {
+    public static String searchWikiFor(String articleTitle) {
 
         String url = encodeSearchToUrl(articleTitle);
         String jsonResponse = "";
@@ -71,35 +42,25 @@ public class Main {
         try {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             jsonResponse = response.body();
+
         }
         catch (Exception e) {
-
-            System.err.println("Main main | Network error, closing..." + "\n" + e);
-            return false;
-
+            return("!Network Error!");
         }
         try{
             if (isValidSearch(jsonResponse)) {
-
-                System.out.print(extractInformation(jsonResponse, "Redirect"));
-                System.out.println(extractInformation(jsonResponse, "Revision"));
-                System.out.println("\n---------------------------\n");
-                return true;
+                String outputReturn = "";
+                outputReturn += (extractInformation(jsonResponse, "Redirect"));
+                outputReturn += (extractInformation(jsonResponse, "Revision"));
+                outputReturn +=("\n---------------------------\n");
+                return outputReturn;
 
             }
-            return false;
-
+            return ("!No Wikipedia Article Detected!");
         }
         catch (Exception e) {
-
-            System.err.println("Error"
-                    + "\nLocation: Main, searchWikiFor"
-                    + "\nResponse to JSON request failed\n"
-                    + e);
-
+            return("!Issue Extracting Information!");
         }
-
-        return false;
     }
 
 
@@ -122,7 +83,6 @@ public class Main {
 
     public static boolean isValidSearch(String jsonText){
         if (jsonText.indexOf("missing\":true") != -1){
-            System.err.println("Invalid search, closing...");
             return false;
         }
         return true;
