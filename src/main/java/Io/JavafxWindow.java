@@ -47,7 +47,6 @@ public class JavafxWindow extends Application{
                 Scene resultsScene = new Scene(resultsVbox, 500, 700);
                 stage.setScene(resultsScene);
             }
-
         });
 
         searchAgainButton.setOnAction(event ->{
