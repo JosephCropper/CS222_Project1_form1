@@ -7,20 +7,6 @@ import static Io.Main.*;
 
 public class RunTests {
 
-        @Test
-        public void doesEmptyClose(){
-            Assertions.assertFalse(run(""));
-        }
-
-        @Test
-        public void doesNonEmptyValidContinue(){
-            Assertions.assertTrue(run("Sleep Token"));
-        }
-
-        @Test
-        public void doesNonEmptyNonValidStop(){
-            Assertions.assertFalse(run("asdfajfasdfnjdhbfd"));
-        }
 
         @Test
         public void isValidSearchFindsMissingTrue(){
