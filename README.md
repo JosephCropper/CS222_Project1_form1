@@ -15,17 +15,16 @@ Project function:
 
 ## Classes:
 - Main
+- JavafxWindow
 
 ## Main:
 ###   public static void main(String[] args)
-Runs "run" function. differentiated for testing purposes. 
+Runs "run" function and initializes GUI
 
-### public static boolean run(String code)
-Initializes scanner and loop. Immediately takes user input, checks if its empty. If its empty, the program cuts. Otherwise, calls searchWikiFor with the input.
-"code" allows for testing differentials, where the input can be manually entered in in a test. This is also why there's a return boolean.
+### public static String run(String code)
+Takes string input for search query and returns results
 
-###   public static boolean searchWikiFor(String articleTitle) 
-Return affects the run loop, true loops again, false breaks.
+###   public static String searchWikiFor(String articleTitle) 
 Main Driver. 
 Encodes articleTitle to a proper URL format for safe searching in a String format using encodeSearchToUrl, stores it in a new string, Initializes get request to MediaWiki with the encoded url string and establishes return format JSON.
 
@@ -37,21 +36,20 @@ IF if the search is deemed valid by isValidSearch
 
 {
 
-runs extractInformation with response data and appropriate information to print Redirect information, prints result
+runs extractInformation with response data and appropriate information to print Redirect information, stores result
 
-runs extractInformation with response data and appropriate information to print Revision information, prints result
+runs extractInformation with response data and appropriate information to print Revision information, stores result
 
-and return true, as the search request is valid and the program may continue.
+and returns the output of the previous two
 
 }
 
-if the code post "if" statement runs, then the return true never hit, and thus isValidSearch would have needed deem the search invalid, thus returns false
+if the code post "if" statement runs, then the return true never hit, and thus isValidSearch would have needed deem the search invalid, thus returns an error message
 
 }
 
 CATCH{ any error and display the error location }
 
-One final return false at the end as a catch-all failsafe.
 
 ###     public static String encodeSearchToUrl(String search) {
 Encodes search to url-safe format for request sending, returns.
@@ -70,3 +68,5 @@ From this point, a loop runs through the function:
 - Cuts to just past the keyword, to directly expose the data(editorOne")
 - Uses the quotation mark that follows raw data as a measure to extract the raw data itself (editorOne is added to the output)
 - snips past the data and looks for the next iteration of the keyword, if none appear, the loop ends.
+
+  ##
