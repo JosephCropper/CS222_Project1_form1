@@ -69,4 +69,23 @@ From this point, a loop runs through the function:
 - Uses the quotation mark that follows raw data as a measure to extract the raw data itself (editorOne is added to the output)
 - snips past the data and looks for the next iteration of the keyword, if none appear, the loop ends.
 
-  ##
+## JavafxWindow
+runs the GUI
+### public void runWindow(String[] args)
+initializes the actual GUI and runs start
+
+### public void start(Stage stage) throws Exception
+Initializes general query and result states.
+
+Holds button logic
+
+searchButton (in query state):
+
+  when pressed, stores input from the text box and runs it through searchWikiFor
+
+  If the return has an error flag, it creates a popup with showError to display the issue
+
+  Else, prints the returned output from the search
+
+### private static void showError(Stage ownerStage, String message)
+  takes inputted error message and outputs it in a popup.
