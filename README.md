@@ -1,4 +1,4 @@
-# CS222_Project1_form1
+# CS222_Project1
 
 Created by Joseph Cropper
 
